@@ -37,17 +37,7 @@ INSERT INTO vitals_logs (patient_id, heart_rate, blood_pressure, record_time) VA
 CREATE INDEX idx_vitals_logs ON vitals_logs (patient_id, record_time);
 
 -- Thao tác 3: Xây dựng dashboard hiển thị
--- CREATE VIEW ER_DASHBOARD_VIEW AS
-select * from patients;
-SELECT p.id AS patient_id, p.full_name, p.admission_time, vl.heart_rate, vl.blood_pressure ,vl.id AS vitals_logs_id,  
-			CASE 
-				WHEN vl.heart_rate > 120 OR vl.heart_rate < 50 THEN 'CRITICAL'
-                ELSE 'STABLE'
-			END AS Urgency_Level
-FROM patients p
-LEFT JOIN vitals_logs vl ON p.id = vl.patient_id
-ORDER BY record_time DESC;
-
+-- Tạo VIEW để lấy ra bảng đầy đủ thông tin bệnh nhân kể cả dữ liệu sinh tồn của bệnh nha
 CREATE VIEW ER_DASHBOARD_VIEW AS
 SELECT p.id AS patient_id, p.full_name, p.admission_time, ifnull(vl.heart_rate, 'pending') as heart_rate, vl.blood_pressure ,vl.id AS vitals_logs_id,  
 			CASE 
@@ -58,7 +48,20 @@ FROM patients p
 LEFT JOIN vitals_logs vl ON p.id = vl.patient_id
 ORDER BY record_time DESC;
 
-SELECT * FROM ER_DASHBOARD_VIEW; 
+-- VIEW để lấy ra bảng có cơ chế lấy BẢN GHI MỚI NHẤT (THEO YÊU CẦU ĐỀ BÀI) !
+CREATE VIEW ER_DASHBOARD_VIEW_Mechanism_TOP1 AS
+SELECT p.id AS patient_id, p.full_name, p.admission_time, ifnull(vl.heart_rate, 'pending') as heart_rate, vl.blood_pressure ,vl.id AS vitals_logs_id,  
+			CASE 
+				WHEN vl.heart_rate > 120 OR vl.heart_rate < 50 THEN 'CRITICAL'
+                ELSE 'STABLE'
+			END AS Urgency_Level
+FROM patients p
+LEFT JOIN vitals_logs vl ON p.id = vl.patient_id
+ORDER BY record_time DESC
+LIMIT 1;
+
+SELECT * FROM ER_DASHBOARD_VIEW;
+SELECT * FROM ER_DASHBOARD_VIEW_Mechanism_TOP1;  
 
 -- Thao tác 4: Kiểm tra tính bảo mật
 INSERT INTO ER_DASHBOARD_VIEW (full_name) VALUES (NULL); 
