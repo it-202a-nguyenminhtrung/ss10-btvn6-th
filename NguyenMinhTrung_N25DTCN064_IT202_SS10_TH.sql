@@ -57,8 +57,21 @@ SELECT p.id AS patient_id, p.full_name, p.admission_time, ifnull(vl.heart_rate, 
 			END AS Urgency_Level
 FROM patients p
 LEFT JOIN vitals_logs vl ON p.id = vl.patient_id
-ORDER BY record_time DESC
-LIMIT 1;
+GROUP BY p.id
+ORDER BY record_time DESC;
+
+SELECT p.id AS patient_id, p.full_name, p.admission_time, ifnull(vl.heart_rate, 'pending') as heart_rate, vl.blood_pressure ,vl.id AS vitals_logs_id, vl.record_time,
+			CASE 
+				WHEN vl.heart_rate > 120 OR vl.heart_rate < 50 THEN 'CRITICAL'
+                ELSE 'STABLE'
+			END AS Urgency_Level
+FROM patients p
+LEFT JOIN vitals_logs vl ON p.id = vl.patient_id
+WHERE vl.record_time = (
+        SELECT MAX(vl2.record_time)
+        FROM vitals_logs vl2
+        WHERE vl2.patient_id = p.id
+);
 
 SELECT * FROM ER_DASHBOARD_VIEW;
 SELECT * FROM ER_DASHBOARD_VIEW_Mechanism_TOP1;  
